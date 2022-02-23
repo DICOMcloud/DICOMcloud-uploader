@@ -11,18 +11,20 @@ namespace DICOMcloudUploader
     {
         /// <summary>
         /// The method will read all files in a directory/sub-directories and send a DICOMweb Store request (STOW-RS)
-        /// Each 5 DICOM files will be grouped as a multi-part content and sent in a single request.
+        /// DICOM files will be grouped as defined in <paramref name="batch"/> as a multi-part content and sent in a single request.
         /// </summary>
         /// <param name="directory"></param>
         /// <param name="storeUrl"></param>
-        public static void StoreDicomInDirectory(string directory, string storeUrl)
+        /// <param name="pattern"></param>
+        /// <param name="batch"></param>
+        public static void StoreDicomInDirectory(string directory, string storeUrl, string pattern, int batch)
         {
             var mimeType = "application/dicom";
             MultipartContent multiContent = GetMultipartContent(mimeType);
             int count = 0;
 
-            //Enumerate all files in a directory/sub-directories
-            foreach (var path in Directory.EnumerateFiles(directory, "*.*", SearchOption.AllDirectories))
+            //Enumerate files in a directory/sub-directories
+            foreach (var path in Directory.EnumerateFiles(directory, pattern, SearchOption.AllDirectories))
             {
                 count++;
 
@@ -32,7 +34,7 @@ namespace DICOMcloudUploader
 
                 multiContent.Add(sContent);
 
-                if (count % 5 == 0)
+                if (count % batch == 0)
                 {
                     count = 0;
 
@@ -42,7 +44,7 @@ namespace DICOMcloudUploader
                 }
             }
 
-            //Flush any remaining images (should be less than 5)
+            //Flush any remaining images (should be less than BATCH)
             if (multiContent.Count() > 0)
             {
                 StoreToServer(multiContent, storeUrl);
