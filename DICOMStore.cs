@@ -85,7 +85,7 @@ namespace DICOMcloudUploader
 
                 HttpResponseMessage response = result.Result;
 
-                Console.WriteLine(response.StatusCode);
+                Console.WriteLine($"[{(uint)response.StatusCode}]{response.StatusCode}: {response.ReasonPhrase}");
 
                 var result2 = response.Content.ReadAsStringAsync();
 
